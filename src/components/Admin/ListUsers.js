@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Modal, Button } from 'react-bootstrap';
-import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
-import { auth, db, deleteUser as deleteAuthUser } from '../../firebase';
+import { Table, Button, Offcanvas } from 'react-bootstrap';
+import { collection, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { db } from '../../firebase';
+import EditUserForm from './EditUserForm'; // Importez votre composant de formulaire de modification
 
 function ListUsers(props) {
   const [utilisateurs, setUtilisateurs] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
   const [editedUser, setEditedUser] = useState(null);
-  const [showEditForm, setShowEditForm] = useState(false);
-
+  const [showEditOffCanvas, setShowEditOffCanvas] = useState(false); // Ajoutez cet état
 
   useEffect(() => {
     const fetchUtilisateurs = async () => {
@@ -44,51 +43,79 @@ function ListUsers(props) {
 
   const handleEditUser = (user) => {
     setEditedUser(user);
+    setShowEditOffCanvas(true); // Affichez le Offcanvas de modification
   };
 
-  const handleSaveEdit = (editedUser) => {
-    // Effectuez ici la logique de sauvegarde des modifications dans la base de données
-    // Puis mettez à jour la liste des utilisateurs
-    // Enfin, cachez le formulaire d'édition en utilisant setShowEditForm(false)
+  const handleSaveEdit = async (editedUser) => {
+    try {
+      // Effectuez ici la logique de sauvegarde des modifications dans la base de données
+      await updateDoc(doc(db, 'users', editedUser.id), {
+        email: editedUser.email,
+        role: editedUser.role,
+        firstName: editedUser.firstName,
+        lastName: editedUser.lastName,
+      });
+
+      // Mettez à jour la liste des utilisateurs
+      const updatedUsers = utilisateurs.map((user) =>
+        user.id === editedUser.id ? editedUser : user
+      );
+      setUtilisateurs(updatedUsers);
+
+      // Cachez le Offcanvas de modification
+      setShowEditOffCanvas(false);
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de l\'utilisateur :', error);
+    }
   };
-  
+
   const handleCancelEdit = () => {
-    // Annulez l'édition et cachez le formulaire d'édition
-    setShowEditForm(false);
+    // Annulez l'édition et cachez le Offcanvas de modification
+    setShowEditOffCanvas(false);
   };
 
   return (
     <>
-    <h3>Liste des utilisateurs</h3>
-    <Table striped bordered hover>
-      <thead>
-        <tr>
-          <th>E-mail</th>
-          <th>Nom</th>
-          <th>Prénom</th>
-          <th>Rôle</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {utilisateurs.map((utilisateur) => (
-          <tr key={utilisateur.id}>
-            <td>{utilisateur.email}</td>
-            <td>{utilisateur.lastName}</td>
-            <td>{utilisateur.firstName}</td>
-            <td>{utilisateur.role}</td>
-            <td>
-              <Button variant="warning" onClick={() => handleEditUser(utilisateur)}>
-                Modifier
-              </Button>
-              <Button variant="danger" onClick={() => handleDeleteUser(utilisateur.id)}>
-                Supprimer
-              </Button>
-            </td>
+      <h3>Liste des utilisateurs</h3>
+      <Table striped bordered hover>
+        <thead>
+          <tr>
+            <th>E-mail</th>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>Rôle</th>
+            <th>Actions</th>
           </tr>
-        ))}
-      </tbody>
-    </Table>
+        </thead>
+        <tbody>
+          {utilisateurs.map((utilisateur) => (
+            <tr key={utilisateur.id}>
+              <td>{utilisateur.email}</td>
+              <td>{utilisateur.lastName}</td>
+              <td>{utilisateur.firstName}</td>
+              <td>{utilisateur.role}</td>
+              <td>
+                <Button variant="warning" onClick={() => handleEditUser(utilisateur)}>
+                  Modifier
+                </Button>
+                <Button variant="danger" onClick={() => handleDeleteUser(utilisateur.id)}>
+                  Supprimer
+                </Button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+      {showEditOffCanvas && (
+        <Offcanvas show={showEditOffCanvas} onHide={handleCancelEdit} placement="end">
+          <Offcanvas.Header closeButton>
+            <Offcanvas.Title>Modifier l'utilisateur</Offcanvas.Title>
+          </Offcanvas.Header>
+          <Offcanvas.Body>
+            <EditUserForm user={editedUser} onSave={handleSaveEdit} onCancel={handleCancelEdit} />
+          </Offcanvas.Body>
+        </Offcanvas>
+      )}
     </>
   );
 }
