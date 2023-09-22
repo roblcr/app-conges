@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button } from 'react-bootstrap';
+import { v4 as uuidv4 } from 'uuid';
+
 
 const LeaveRequestForm = ({ show, onHide, onSubmit, initialStartDate, initialEndDate }) => {
   const [startDate, setStartDate] = useState('');
@@ -51,11 +53,16 @@ const LeaveRequestForm = ({ show, onHide, onSubmit, initialStartDate, initialEnd
       return;
     }
 
+    // Générez un nouvel ID unique à l'aide de uuidv4()
+    const leaveRequestId = uuidv4();
+
     // Si tout est valide, envoyez la demande de congé à l'aide de la fonction onSubmit
     const leaveRequest = {
+      id: leaveRequestId, // Utilisez le nouvel ID unique
       startDate,
       endDate,
       leaveType,
+      status: 'En attente',
     };
     onSubmit(leaveRequest);
 

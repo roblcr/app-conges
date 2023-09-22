@@ -67,6 +67,7 @@ function CongeCalendar() {
             end: endDate,
             extendedProps: {
                 leaveType: eventData.leaveType,
+                status: eventData.status
               },
           });
         } else {
@@ -104,6 +105,7 @@ function CongeCalendar() {
   
     leaveRequest.uid = uid;
     leaveRequest.leaveType = leaveType;
+    leaveRequest.status = 'En attente';
 
     console.log(leaveType)
   
@@ -176,6 +178,10 @@ function CongeCalendar() {
                     <div className="legend-color" style={{ backgroundColor: 'purple' }}></div>
                     <div className="legend-text">Maladie</div>
                 </div>
+                <div className="legend-item">
+                    <div className="legend-color" style={{ backgroundColor: 'grey' }}></div>
+                    <div className="legend-text">En attente</div>
+                </div>
             </div>
         </div>
 
@@ -210,8 +216,12 @@ function CongeCalendar() {
         backgroundColor = 'purple';
         break;
       default:
-        backgroundColor = 'grey';
+        backgroundColor = 'black';
     }
+
+    if (event.extendedProps.status === 'En attente') {
+        backgroundColor = 'grey';
+      }
 
     return (
       <div
