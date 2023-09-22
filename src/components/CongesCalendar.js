@@ -157,6 +157,28 @@ function CongeCalendar() {
         <Button variant="primary" onClick={handleSignOut}>
           Se déconnecter
         </Button>
+        <div className='d-flex mt-2 justify-content-center'>
+            <div className="legend">
+                <h2>Légende</h2>
+                <div className="legend-item">
+                    <div className="legend-color" style={{ backgroundColor: 'green' }}></div>
+                    <div className="legend-text">RTT</div>
+                </div>
+                <div className="legend-item">
+                    <div className="legend-color" style={{ backgroundColor: 'red' }}></div>
+                    <div className="legend-text">Vacances</div>
+                </div>
+                <div className="legend-item">
+                    <div className="legend-color" style={{ backgroundColor: 'blue' }}></div>
+                    <div className="legend-text">Rendez-Vous</div>
+                </div>
+                <div className="legend-item">
+                    <div className="legend-color" style={{ backgroundColor: 'purple' }}></div>
+                    <div className="legend-text">Maladie</div>
+                </div>
+            </div>
+        </div>
+
         <FullCalendar
   plugins={[dayGridPlugin, interactionPlugin]}
   initialView="dayGridMonth"
@@ -181,9 +203,14 @@ function CongeCalendar() {
       case 'Vacances':
         backgroundColor = 'red';
         break;
-      // Ajoutez des cas pour d'autres types d'événements ici
-      default:
+      case 'Rendez-vous':
         backgroundColor = 'blue';
+        break;
+      case 'Maladie':
+        backgroundColor = 'purple';
+        break;
+      default:
+        backgroundColor = 'grey';
     }
 
     return (
@@ -193,6 +220,7 @@ function CongeCalendar() {
           backgroundColor,
           color: 'white',
           padding: '5px',
+          width: '100%'
         }}
       >
         <b>{event.title}</b>

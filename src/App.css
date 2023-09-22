@@ -2,37 +2,41 @@
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* CSS pour une légende à deux colonnes avec le titre centré */
+.legend {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Deux colonnes égales */
+  gap: 10px; /* Espacement entre les éléments de la légende */
+  width: 30%; /* Ajustez la largeur selon vos besoins */
+  padding: 10px;
+  border: 1px solid #ccc;
+  background-color: #f5f5f5;
+  top: 20px; /* Ajustez la position verticale selon vos besoins */
+  right: 20px; /* Ajustez la position horizontale selon vos besoins */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.legend h2 {
+  font-size: 16px;
+  grid-column: span 2; /* Faites en sorte que le titre occupe les deux colonnes */
+  text-align: center; /* Centrez le texte horizontalement */
+  margin-bottom: 10px;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.legend-item {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  margin-bottom: 5px;
 }
 
-.App-link {
-  color: #61dafb;
+.legend-color {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  border-radius: 50%;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.legend-text {
+  font-size: 14px;
+  grid-column: 2; /* Faites en sorte que le texte occupe la deuxième colonne */
 }
+
