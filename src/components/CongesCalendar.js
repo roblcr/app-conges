@@ -8,7 +8,7 @@ import { Button, Container } from 'react-bootstrap';
 import LeaveRequestForm from './LeaveRequestForm';
 import { signOut } from 'firebase/auth';
 
-function CongeCalendar({ user }) {
+function CongeCalendar() {
   const [events, setEvents] = useState([]);
   const [showLeaveRequestForm, setShowLeaveRequestForm] = useState(false);
   const today = new Date().toISOString();
@@ -16,31 +16,58 @@ function CongeCalendar({ user }) {
   const [initialEndDate, setInitialEndDate] = useState(null); // État pour la date de fin initiale
   const [startDate, setStartDate] = useState(''); // État pour la date de début
   const [endDate, setEndDate] = useState(''); // État pour la date de fin
+  const [user, setUser] = useState(null); // État pour stocker l'utilisateur authentifié
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const q = query(collection(db, 'conges'), where('userId', '==', user.uid));
-        const querySnapshot = await getDocs(q);
-        const eventsData = [];
-
-        querySnapshot.forEach((doc) => {
-          const eventData = doc.data();
-          eventsData.push({
-            title: eventData.leaveType,
-            start: eventData.startDate.toDate(), // Utilisez toDate() pour convertir la date Firestore en objet JavaScript Date
-            end: eventData.endDate.toDate(), // Utilisez toDate() pour convertir la date Firestore en objet JavaScript Date
-          });
-        });
-
-        setEvents(eventsData);
-      } catch (error) {
-        console.error('Erreur lors de la récupération des données de congé :', error);
+    // Utilisez onAuthStateChanged pour écouter les changements d'état d'authentification
+    const unsubscribe = auth.onAuthStateChanged((authUser) => {
+      if (authUser) {
+        // L'utilisateur est authentifié, mettez à jour l'état avec l'utilisateur authentifié
+        setUser(authUser);
+      } else {
+        // L'utilisateur n'est pas authentifié, mettez à jour l'état avec null
+        setUser(null);
       }
-    };
+    });
 
+    // Assurez-vous de vous désabonner lorsque le composant est démonté
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const q = query(collection(db, 'conges'));
+      const querySnapshot = await getDocs(q);
+      const eventsData = [];
+
+      querySnapshot.forEach((doc) => {
+        const eventData = doc.data();
+
+        // Convertissez les chaînes de caractères en objets Date
+        const startDate = new Date(eventData.startDate);
+        const endDate = new Date(eventData.endDate);
+
+        eventsData.push({
+          title: eventData.leaveType,
+          start: startDate,
+          end: endDate,
+        });
+      });
+
+      setEvents(eventsData);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des données de congé :', error);
+    }
+  };
+
+  useEffect(() => {
+    // Appelez fetchData pour charger les données initiales lorsque le composant est monté
     fetchData();
   }, [user]);
+  
+  
 
   const handleSelect = (arg) => {
     setShowLeaveRequestForm(true);
@@ -51,6 +78,12 @@ function CongeCalendar({ user }) {
   };
 
   const handleLeaveRequestSubmit = (leaveRequest) => {
+    // Obtenez l'UID de l'utilisateur actuellement authentifié
+    const uid = auth.currentUser.uid;
+  
+    // Ajoutez l'UID de l'utilisateur à la demande de congé
+    leaveRequest.uid = uid;
+  
     // Envoyez la demande de congé à Firestore ici
     // leaveRequest contiendra les données sélectionnées par l'utilisateur
     addDoc(collection(db, 'conges'), leaveRequest)
@@ -58,6 +91,9 @@ function CongeCalendar({ user }) {
         // La demande de congé a été ajoutée avec succès
         // Vous pouvez également mettre à jour votre calendrier ici si nécessaire
         console.log('Demande de congé ajoutée avec succès :', leaveRequest);
+
+        fetchData()
+
         setShowLeaveRequestForm(false); // Fermez la popup après avoir soumis la demande
         setStartDate(''); // Réinitialisez les dates modifiables
         setEndDate(''); // Réinitialisez les dates modifiables
@@ -66,6 +102,7 @@ function CongeCalendar({ user }) {
         console.error('Erreur lors de l\'ajout de la demande de congé :', error);
       });
   };
+  
 
   const handleSignOut = async () => {
     try {
