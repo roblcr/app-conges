@@ -1,13 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Button, Offcanvas } from 'react-bootstrap';
-import { collection, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc, updateDoc, query, where } from 'firebase/firestore';
 import { db } from '../../firebase';
 import EditUserForm from './EditUserForm'; // Importez votre composant de formulaire de modification
+import UserInfoModal from './UserInfoModal';
 
 function ListUsers(props) {
   const [utilisateurs, setUtilisateurs] = useState([]);
   const [editedUser, setEditedUser] = useState(null);
   const [showEditOffCanvas, setShowEditOffCanvas] = useState(false); // Ajoutez cet état
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showUserInfoModal, setShowUserInfoModal] = useState(false);
+  const [congesUtilisateur, setCongesUtilisateur] = useState([]); // Ajoutez cet état
+
+
 
   useEffect(() => {
     const fetchUtilisateurs = async () => {
@@ -74,6 +80,26 @@ function ListUsers(props) {
     setShowEditOffCanvas(false);
   };
 
+  const handleShowUserInfo = async (user) => {
+    setSelectedUser(user);
+    setShowUserInfoModal(true);
+
+    // Récupérer les données de congé de l'utilisateur
+    try {
+      const congesQuery = query(collection(db, 'conges'), where('uid', '==', user.uid));
+      const congesSnapshot = await getDocs(congesQuery);
+      const congesData = [];
+      congesSnapshot.forEach((doc) => {
+        const conge = doc.data();
+        conge.id = doc.id;
+        congesData.push(conge);
+      });
+      setCongesUtilisateur(congesData);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des données de congé :', error);
+    }
+  };
+
   return (
     <>
       <h3>Liste des utilisateurs</h3>
@@ -101,6 +127,9 @@ function ListUsers(props) {
                 <Button variant="danger" onClick={() => handleDeleteUser(utilisateur.id)}>
                   Supprimer
                 </Button>
+                <Button variant="info" onClick={() => handleShowUserInfo(utilisateur)}>
+                    Voir Infos
+                </Button>
               </td>
             </tr>
           ))}
@@ -115,6 +144,9 @@ function ListUsers(props) {
             <EditUserForm user={editedUser} onSave={handleSaveEdit} onCancel={handleCancelEdit} />
           </Offcanvas.Body>
         </Offcanvas>
+      )}
+      {showUserInfoModal && (
+        <UserInfoModal user={selectedUser} conges={congesUtilisateur} onClose={() => setShowUserInfoModal(false)} />
       )}
     </>
   );
