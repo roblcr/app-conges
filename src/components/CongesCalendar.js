@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { Button, Container } from 'react-bootstrap';
 import LeaveRequestForm from './LeaveRequestForm';
@@ -38,29 +38,48 @@ function CongeCalendar() {
 
   const fetchData = async () => {
     try {
+      // Créez une requête pour récupérer les données de congé avec les informations de l'utilisateur correspondant
       const q = query(collection(db, 'conges'));
       const querySnapshot = await getDocs(q);
       const eventsData = [];
-
-      querySnapshot.forEach((doc) => {
+  
+      // Parcourez les documents de demande de congé
+      for (const doc of querySnapshot.docs) {
         const eventData = doc.data();
-
-        // Convertissez les chaînes de caractères en objets Date
         const startDate = new Date(eventData.startDate);
         const endDate = new Date(eventData.endDate);
-
-        eventsData.push({
-          title: eventData.leaveType,
-          start: startDate,
-          end: endDate,
-        });
-      });
-
+  
+        // Récupérez l'UID de l'utilisateur à partir de la demande de congé
+        const userUid = eventData.uid;
+  
+        // Créez une requête pour récupérer les informations de l'utilisateur correspondant à cet UID
+        const userQuery = query(collection(db, 'users'), where('uid', '==', userUid));
+        const userQuerySnapshot = await getDocs(userQuery);
+  
+        if (userQuerySnapshot.docs.length > 0) {
+          // Si un utilisateur correspondant est trouvé, utilisez ses informations pour définir le titre de l'événement
+          const userData = userQuerySnapshot.docs[0].data();
+          const eventTitle = `${userData.firstName} ${userData.lastName}`;
+  
+          eventsData.push({
+            title: eventTitle,
+            start: startDate,
+            end: endDate,
+            extendedProps: {
+                leaveType: eventData.leaveType,
+              },
+          });
+        } else {
+          console.error('Utilisateur non trouvé dans la collection "users".');
+        }
+      }
+  
       setEvents(eventsData);
     } catch (error) {
       console.error('Erreur lors de la récupération des données de congé :', error);
     }
   };
+  
 
   useEffect(() => {
     // Appelez fetchData pour charger les données initiales lorsque le composant est monté
@@ -78,30 +97,45 @@ function CongeCalendar() {
   };
 
   const handleLeaveRequestSubmit = (leaveRequest) => {
-    // Obtenez l'UID de l'utilisateur actuellement authentifié
     const uid = auth.currentUser.uid;
+
+    // Obtenez le type de congé à partir du formulaire de demande
+    const leaveType = leaveRequest.leaveType; // Assurez-vous que c'est la propriété correcte du formulaire
   
-    // Ajoutez l'UID de l'utilisateur à la demande de congé
     leaveRequest.uid = uid;
+    leaveRequest.leaveType = leaveType;
+
+    console.log(leaveType)
   
-    // Envoyez la demande de congé à Firestore ici
-    // leaveRequest contiendra les données sélectionnées par l'utilisateur
     addDoc(collection(db, 'conges'), leaveRequest)
       .then(() => {
-        // La demande de congé a été ajoutée avec succès
-        // Vous pouvez également mettre à jour votre calendrier ici si nécessaire
-        console.log('Demande de congé ajoutée avec succès :', leaveRequest);
-
-        fetchData()
-
-        setShowLeaveRequestForm(false); // Fermez la popup après avoir soumis la demande
-        setStartDate(''); // Réinitialisez les dates modifiables
-        setEndDate(''); // Réinitialisez les dates modifiables
+        const userRef = query(collection(db, 'users'), where('uid', '==', uid));
+        getDocs(userRef)
+          .then((querySnapshot) => {
+            if (!querySnapshot.empty) {
+              // Il devrait y avoir un seul document correspondant à cet UID
+              const userDoc = querySnapshot.docs[0];
+              const userData = userDoc.data();
+              console.log('Nom de l\'utilisateur :', userData.lastName);
+              console.log('Prénom de l\'utilisateur :', userData.firstName);
+            } else {
+              console.error('Utilisateur non trouvé dans la collection "users".');
+            }
+          })
+          .catch((error) => {
+            console.error('Erreur lors de la récupération des données de l\'utilisateur :', error);
+          });
+  
+        fetchData();
+        setShowLeaveRequestForm(false);
+        setStartDate('');
+        setEndDate('');
       })
       .catch((error) => {
         console.error('Erreur lors de l\'ajout de la demande de congé :', error);
       });
   };
+  
   
 
   const handleSignOut = async () => {
@@ -124,15 +158,51 @@ function CongeCalendar() {
           Se déconnecter
         </Button>
         <FullCalendar
-          plugins={[dayGridPlugin, interactionPlugin]}
-          initialView="dayGridMonth"
-          events={events}
-          selectable={true}
-          select={handleSelect}
-          validRange={{
-            start: today, // À partir d'aujourd'hui
-          }}
-        />
+  plugins={[dayGridPlugin, interactionPlugin]}
+  initialView="dayGridMonth"
+  displayEventTime={false}
+  events={events}
+  selectable={true}
+  select={handleSelect}
+  slotDuration="24:00:00"
+  validRange={{
+    start: today,
+  }}
+  eventContent={(arg) => {
+    const { event } = arg;
+    console.log(event.extendedProps.leaveType)
+
+    // Définissez des couleurs personnalisées pour chaque type d'événement
+    let backgroundColor;
+    switch (event.extendedProps.leaveType) {
+      case 'RTT':
+        backgroundColor = 'green';
+        break;
+      case 'Vacances':
+        backgroundColor = 'red';
+        break;
+      // Ajoutez des cas pour d'autres types d'événements ici
+      default:
+        backgroundColor = 'blue';
+    }
+
+    return (
+      <div
+        className="fc-content"
+        style={{
+          backgroundColor,
+          color: 'white',
+          padding: '5px',
+        }}
+      >
+        <b>{event.title}</b>
+        {/* <br />
+        {event.extendedProps.leaveType} */}
+      </div>
+    );
+  }}
+/>
+
       </div>
       <LeaveRequestForm
         show={showLeaveRequestForm}
