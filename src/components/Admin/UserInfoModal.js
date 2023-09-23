@@ -1,8 +1,7 @@
-import { Button, Modal } from "react-bootstrap";
+import { Badge, Button, Modal, Table } from "react-bootstrap";
 
 function UserInfoModal({ user, onClose, conges, typesConges }) {
-    console.log(conges);
-    
+
     // Fonction pour formater une date au format français (dd/mm/yyyy)
     const formatDate = (date) => {
         const day = date.getDate().toString().padStart(2, '0');
@@ -11,24 +10,53 @@ function UserInfoModal({ user, onClose, conges, typesConges }) {
         return `${day}/${month}/${year}`;
     };
 
+    const getStatusBadgeVariant = (status) => {
+        switch (status) {
+          case 'Validé':
+            return 'success'; // Badge vert pour "Validé"
+          case 'Refusé':
+            return 'danger'; // Badge rouge pour "Refusé"
+          case 'En attente':
+            return 'warning'; // Badge jaune pour "En attente"
+          default:
+            return 'secondary'; // Autre statut, badge gris par défaut
+        }
+      };
+
+      console.log(conges)
+
     return (
         <Modal show={true} onHide={onClose} size="lg">
             <Modal.Header closeButton>
-                <Modal.Title>Informations de l'utilisateur</Modal.Title>
+                <Modal.Title>Informations de {user.firstName} {user.lastName}</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                <h4>Nom : {user.lastName}</h4>
-                <h4>Prénom : {user.firstName}</h4>
-                {/* Affichez les informations de congé ici */}
-                <h4>Congés :</h4>
+            <h4>Congés :</h4>
                 {conges && conges.length > 0 && (
-                    <ul>
-                        {conges.map((conge) => (
-                            <li key={conge.id}>
-                                Type : {conge.leaveType} - Du {formatDate(new Date(conge.startDate))} au {formatDate(new Date(conge.endDate))}
-                            </li>
-                        ))}
-                    </ul>
+                <Table striped bordered hover>
+                    <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Date de début</th>
+                        <th>Date de fin</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {conges.map((conge) => (
+                        <tr key={conge.id}>
+                        <td>{conge.leaveType}</td>
+                        <td>{formatDate(new Date(conge.startDate))}</td>
+                        <td>{formatDate(new Date(conge.endDate))}</td>
+                        <td>
+                            <Badge bg={getStatusBadgeVariant(conge.status)}>
+                            {conge.status}
+                            </Badge>
+                        </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </Table>
                 )}
             </Modal.Body>
             <Modal.Footer>

@@ -6,7 +6,7 @@ import { collection, query, where, getDocs, addDoc, doc, getDoc } from 'firebase
 import { auth, db } from '../firebase';
 import { Button, Container } from 'react-bootstrap';
 import LeaveRequestForm from './LeaveRequestForm';
-import { signOut } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom/dist';
 import { RotatingLines } from 'react-loader-spinner';
 
@@ -20,19 +20,32 @@ function CongeCalendar() {
   const [endDate, setEndDate] = useState(''); // État pour la date de fin
   const [isLoading, setIsLoading] = useState(true); // État pour le chargement initial
   const [user, setUser] = useState(null); // État pour stocker l'utilisateur authentifié
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate()
 
   useEffect(() => {
     // Utilisez onAuthStateChanged pour écouter les changements d'état d'authentification
-    const unsubscribe = auth.onAuthStateChanged((authUser) => {
-      if (authUser) {
-        // L'utilisateur est authentifié, mettez à jour l'état avec l'utilisateur authentifié
-        setUser(authUser);
-      } else {
-        // L'utilisateur n'est pas authentifié, mettez à jour l'état avec null
-        setUser(null);
-      }
-    });
+    const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
+        if (authUser) {
+          setUser(authUser);
+  
+          try {
+            const q = query(collection(db, 'users'), where('uid', '==', authUser.uid), where('role', '==', 'admin'));
+            const querySnapshot = await getDocs(q);
+  
+            if (!querySnapshot.empty) {
+              setIsAdmin(true);
+            } else {
+              setIsAdmin(false);
+            }
+          } catch (error) {
+            console.error('Erreur lors de la récupération des données de l\'utilisateur :', error);
+          }
+        } else {
+          setUser(null);
+          setIsAdmin(false);
+        }
+    })
 
     // Assurez-vous de vous désabonner lorsque le composant est démonté
     return () => {
@@ -185,6 +198,11 @@ function CongeCalendar() {
         <Button variant="primary" onClick={handleSignOut}>
           Se déconnecter
         </Button>
+        {isAdmin && (
+          <Button variant="info" onClick={() => navigate('/admin')}>
+            Accéder à l'administration
+          </Button>
+        )}
         <div className='d-flex mt-2 justify-content-center'>
             <div className="legend">
                 <h2>Légende</h2>

@@ -189,6 +189,9 @@ const PanelAdmin = () => {
         <Button variant="primary mb-3" onClick={handleShowOffCanvas}>
           Ajouter un utilisateur
         </Button>
+        <Button variant="info mb-3" onClick={() => navigate('/')}>
+          Revenir au calendrier
+        </Button>
       </div>
 
       {/* Afficher les congés en attente ici */}
