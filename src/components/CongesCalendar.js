@@ -7,6 +7,8 @@ import { auth, db } from '../firebase';
 import { Button, Container } from 'react-bootstrap';
 import LeaveRequestForm from './LeaveRequestForm';
 import { signOut } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom/dist';
+import { RotatingLines } from 'react-loader-spinner';
 
 function CongeCalendar() {
   const [events, setEvents] = useState([]);
@@ -16,7 +18,9 @@ function CongeCalendar() {
   const [initialEndDate, setInitialEndDate] = useState(null); // État pour la date de fin initiale
   const [startDate, setStartDate] = useState(''); // État pour la date de début
   const [endDate, setEndDate] = useState(''); // État pour la date de fin
+  const [isLoading, setIsLoading] = useState(true); // État pour le chargement initial
   const [user, setUser] = useState(null); // État pour stocker l'utilisateur authentifié
+  const navigate = useNavigate()
 
   useEffect(() => {
     // Utilisez onAuthStateChanged pour écouter les changements d'état d'authentification
@@ -86,6 +90,28 @@ function CongeCalendar() {
     // Appelez fetchData pour charger les données initiales lorsque le composant est monté
     fetchData();
   }, [user]);
+
+  useEffect(() => {
+    // Simulez un délai de chargement pour illustrer l'utilisation du loader
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 2000); // Mettez la valeur appropriée pour votre cas réel
+  }, []);
+
+  // Ajoutez une condition pour rediriger si l'utilisateur n'est pas connecté
+  if (!user) {
+    navigate('/login')
+  }
+  
+  if (isLoading) {
+    return <RotatingLines
+    strokeColor="grey"
+    strokeWidth="5"
+    animationDuration="0.75"
+    width="96"
+    visible={true}
+  />
+  }
   
   
 

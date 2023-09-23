@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Container, Modal, Offcanvas } from 'react-bootstrap';
+import { Button, Container, Modal, Offcanvas, Table } from 'react-bootstrap';
 import FormUsers from './FormUsers';
 import ListUsers from './ListUsers';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -8,6 +8,7 @@ import { collection, doc, getDocs, query, updateDoc, where } from 'firebase/fire
 import { db } from '../../firebase';
 import { Redirect } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom/dist';
+import { RotatingLines } from 'react-loader-spinner';
 
 const PanelAdmin = () => {
   const [showListeModal, setShowListeModal] = useState(false);
@@ -57,17 +58,29 @@ const PanelAdmin = () => {
         const q = query(collection(db, 'conges'), where('status', '==', 'En attente'));
         const querySnapshot = await getDocs(q);
         const leaves = [];
-
-        querySnapshot.forEach((doc) => {
+    
+        for (const doc of querySnapshot.docs) {
           const leaveData = doc.data();
+          
+          // Récupérez l'utilisateur associé à cette demande de congé
+          const userQuery = query(collection(db, 'users'), where('uid', '==', leaveData.uid));
+          const userQuerySnapshot = await getDocs(userQuery);
+    
+          if (!userQuerySnapshot.empty) {
+            const userData = userQuerySnapshot.docs[0].data();
+            // Ajoutez le nom et le prénom de l'utilisateur à la demande de congé
+            leaveData.userName = `${userData.firstName} ${userData.lastName}`;
+          }
+    
           leaves.push(leaveData);
-        });
-
+        }
+    
         setPendingLeaves(leaves);
       } catch (error) {
         console.error('Erreur lors du chargement des congés en attente :', error);
       }
     };
+    
 
     if (isAdmin) {
       loadPendingLeaves();
@@ -75,12 +88,18 @@ const PanelAdmin = () => {
   }, [isAdmin]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <RotatingLines
+    strokeColor="grey"
+    strokeWidth="5"
+    animationDuration="0.75"
+    width="96"
+    visible={true}
+  />
   }
 
   if (!isAdmin) {
     // Si l'utilisateur n'est pas administrateur, redirigez-le vers une autre page
-    navigate('/login');
+    navigate('/');
   }
 
   const handleShowListeModal = () => {
@@ -118,6 +137,11 @@ const PanelAdmin = () => {
         await updateDoc(leaveDocRef, { status: 'Validé' });
   
         console.log('Demande de congé approuvée avec succès.');
+
+        // Mettez à jour l'état local pour supprimer la demande de congé approuvée
+      setPendingLeaves((prevLeaves) =>
+      prevLeaves.filter((leave) => leave.id !== id)
+    );
       } else {
         console.error('Demande de congé non trouvée.');
       }
@@ -143,6 +167,11 @@ const PanelAdmin = () => {
         await updateDoc(leaveDocRef, { status: 'Refusé' });
   
         console.log('Demande de congé refusée avec succès.');
+
+        // Mettez à jour l'état local pour supprimer la demande de congé approuvée
+      setPendingLeaves((prevLeaves) =>
+      prevLeaves.filter((leave) => leave.id !== id)
+    );
       } else {
         console.error('Demande de congé non trouvée.');
       }
@@ -150,6 +179,8 @@ const PanelAdmin = () => {
       console.error('Erreur lors de l\'approbation de la demande de congé :', error);
     }
   };
+
+  console.log(pendingLeaves)
 
   return (
     <Container>
@@ -162,30 +193,42 @@ const PanelAdmin = () => {
 
       {/* Afficher les congés en attente ici */}
       <div>
-        <h2>Congés en attente de validation</h2>
-        <ul>
-          {pendingLeaves.map((leave) => (
-            <li key={leave.id}>
-              {/* Affichez les informations pertinentes sur le congé */}
-              {leave.startDate} - {leave.endDate}
-              <Button
-                variant="success"
-                // Ajoutez ici la logique pour valider le congé
-                onClick={() => handleApproveLeave(leave.id)}
-              >
-                Valider
-              </Button>
-              <Button
-                variant="danger"
-                // Ajoutez ici la logique pour refuser le congé
-                onClick={() => handleRejectLeave(leave.id)}
-              >
-                Refuser
-              </Button>
-            </li>
-          ))}
-        </ul>
-      </div>
+  <h2>Congés en attente de validation</h2>
+  <Table striped bordered hover>
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Date de début</th>
+        <th>Date de fin</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {pendingLeaves.map((leave) => (
+        <tr key={leave.id}>
+          <td>{leave.userName}</td>
+          <td>{leave.startDate}</td>
+          <td>{leave.endDate}</td>
+          <td>
+            <Button
+              variant="success"
+              onClick={() => handleApproveLeave(leave.id)}
+            >
+              Valider
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => handleRejectLeave(leave.id)}
+            >
+              Refuser
+            </Button>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </Table>
+</div>
+
 
       <ListUsers key={userListKey} />
 
