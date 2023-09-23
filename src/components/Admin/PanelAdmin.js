@@ -178,7 +178,7 @@ const PanelAdmin = () => {
               <Button
                 variant="danger"
                 // Ajoutez ici la logique pour refuser le congé
-                onClick={() => handleRejectLeave(leave)}
+                onClick={() => handleRejectLeave(leave.id)}
               >
                 Refuser
               </Button>

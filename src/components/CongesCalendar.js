@@ -39,7 +39,7 @@ function CongeCalendar() {
   const fetchData = async () => {
     try {
       // Créez une requête pour récupérer les données de congé avec les informations de l'utilisateur correspondant
-      const q = query(collection(db, 'conges'));
+      const q = query(collection(db, 'conges'), where('status', '!=', 'Refusé'));
       const querySnapshot = await getDocs(q);
       const eventsData = [];
   
