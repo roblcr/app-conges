@@ -1,8 +1,9 @@
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import React, { useState } from 'react';
-import { Form, FormControl, Button, Container } from 'react-bootstrap';
+import { Form, FormControl, Button, Container, InputGroup } from 'react-bootstrap';
 import { auth } from '../firebase';
 import { useNavigate } from 'react-router-dom';
+import { EnvelopeAtFill, LockFill } from 'react-bootstrap-icons';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -31,30 +32,46 @@ function Login() {
   };
 
   return (
-    <Container>
-    <div>
-      <h2>Connexion</h2>
-      <Form onSubmit={handleLogin}>
-        <Form.Group className="mb-3">
-          <FormControl
-            type="email"
-            placeholder="E-mail"
-            value={email}
-            onChange={handleEmailChange}
-          />
-        </Form.Group>
-        <Form.Group className="mb-3">
-          <FormControl
-            type="password"
-            placeholder="Mot de passe"
-            value={password}
-            onChange={handlePasswordChange}
-          />
-        </Form.Group>
-        <Button type="submit" variant="primary">Se connecter</Button>
-        {error && <p className="text-danger">{error}</p>}
-      </Form>
-    </div>
+    <Container className='w-25'>
+      <div className="mt-5">
+        <h2>Connexion</h2>
+        <Form onSubmit={handleLogin}>
+          <Form.Group className="mb-3">
+            <InputGroup>
+                <InputGroup.Text id="email-addon">
+                  <EnvelopeAtFill />
+                </InputGroup.Text>
+              <FormControl
+                type="email"
+                placeholder="E-mail"
+                value={email}
+                onChange={handleEmailChange}
+                aria-label="E-mail"
+                aria-describedby="email-addon"
+              />
+            </InputGroup>
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <InputGroup>
+                <InputGroup.Text id="password-addon">
+                  <LockFill />
+                </InputGroup.Text>
+              <FormControl
+                type="password"
+                placeholder="Mot de passe"
+                value={password}
+                onChange={handlePasswordChange}
+                aria-label="Mot de passe"
+                aria-describedby="password-addon"
+              />
+            </InputGroup>
+          </Form.Group>
+          <Button type="submit" variant="primary" className="w-100">
+            Se connecter
+          </Button>
+          {error && <p className="text-danger mt-2">{error}</p>}
+        </Form>
+      </div>
     </Container>
   );
 }
