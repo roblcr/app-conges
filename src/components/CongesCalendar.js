@@ -117,13 +117,24 @@ function CongeCalendar() {
   }
   
   if (isLoading) {
-    return <RotatingLines
-    strokeColor="grey"
-    strokeWidth="5"
-    animationDuration="0.75"
-    width="96"
-    visible={true}
-  />
+    return (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh', // Hauteur de la vue (100% de la fenêtre)
+        }}
+      >
+        <RotatingLines
+          strokeColor="grey"
+          strokeWidth="5"
+          animationDuration="0.75"
+          width="96"
+          visible={true}
+        />
+      </div>
+    );
   }
   
   

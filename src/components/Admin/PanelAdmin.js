@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Container, Modal, Offcanvas, Table } from 'react-bootstrap';
+import { Badge, Button, Container, Modal, Offcanvas, Table } from 'react-bootstrap';
 import FormUsers from './FormUsers';
 import ListUsers from './ListUsers';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -9,6 +9,8 @@ import { db } from '../../firebase';
 import { Redirect } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom/dist';
 import { RotatingLines } from 'react-loader-spinner';
+import { Calendar, List, PersonPlus } from 'react-bootstrap-icons';
+import PendingLeavesModal from './PendingLeavesModal';
 
 const PanelAdmin = () => {
   const [showListeModal, setShowListeModal] = useState(false);
@@ -20,6 +22,7 @@ const PanelAdmin = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [pendingLeaves, setPendingLeaves] = useState([]); // État pour stocker les congés en attente
   const navigate = useNavigate();
+  const numPendingLeaves = pendingLeaves.length;
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
@@ -88,13 +91,24 @@ const PanelAdmin = () => {
   }, [isAdmin]);
 
   if (isLoading) {
-    return <RotatingLines
-    strokeColor="grey"
-    strokeWidth="5"
-    animationDuration="0.75"
-    width="96"
-    visible={true}
-  />
+    return (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh', // Hauteur de la vue (100% de la fenêtre)
+        }}
+      >
+        <RotatingLines
+          strokeColor="grey"
+          strokeWidth="5"
+          animationDuration="0.75"
+          width="96"
+          visible={true}
+        />
+      </div>
+    );
   }
 
   if (!isAdmin) {
@@ -180,57 +194,78 @@ const PanelAdmin = () => {
     }
   };
 
-  console.log(pendingLeaves)
+  const iconStyle = {
+    fontSize: '24px', // Ajustez la taille de l'icône selon vos préférences
+    marginBottom: '1px'
+  };
+  
+  const returnButtonStyle = {
+    fontSize: '18px',     // Taille de la police
+    borderRadius: '50px', // Bord arrondi pour un aspect élégant
+    padding: '10px 20px', // Espacement interne
+    background: 'green',  // Couleur de fond du bouton de retour
+    color: 'white',       // Couleur du texte
+    transition: 'background-color 0.2s', // Transition de couleur de fond
+  };
+  
+  const addButtonStyle = {
+    ...returnButtonStyle,
+    background: '#007bff', // Couleur de fond du bouton d'ajout
+  };
 
   return (
     <Container>
-      <div className="text-center mt-4">
-        <h1>Panel Admin</h1>
-        <Button variant="primary mb-3" onClick={handleShowOffCanvas}>
-          Ajouter un utilisateur
-        </Button>
-        <Button variant="info mb-3" onClick={() => navigate('/')}>
-          Revenir au calendrier
-        </Button>
-      </div>
+<div className="d-flex justify-content-between align-items-center mt-4">
+  <div>
+    <Button
+      variant="info"
+      onClick={() => navigate('/')}
+      className='btn-lg'
+      style={returnButtonStyle}
+    >
+      <Calendar style={iconStyle} />
+    </Button>
+  </div>
+  <h1 className="m-0">Panel Admin</h1>
+  <div className="d-flex align-items-center">
+    <Button
+        variant="primary"
+        onClick={handleShowListeModal}
+        className='btn-lg'
+        style={returnButtonStyle}
+      >
+        <List style={iconStyle} />
+        {numPendingLeaves > 0 && (
+            <Badge bg="danger" className="ml-2" style={{position: 'absolute', top: '20px'}}>
+              {numPendingLeaves}
+            </Badge>
+          )}
+      </Button>
 
-      {/* Afficher les congés en attente ici */}
-      <div>
-  <h2>Congés en attente de validation</h2>
-  <Table striped bordered hover>
-    <thead>
-      <tr>
-        <th>Nom</th>
-        <th>Date de début</th>
-        <th>Date de fin</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {pendingLeaves.map((leave) => (
-        <tr key={leave.id}>
-          <td>{leave.userName}</td>
-          <td>{leave.startDate}</td>
-          <td>{leave.endDate}</td>
-          <td>
-            <Button
-              variant="success"
-              onClick={() => handleApproveLeave(leave.id)}
-            >
-              Valider
-            </Button>
-            <Button
-              variant="danger"
-              onClick={() => handleRejectLeave(leave.id)}
-            >
-              Refuser
-            </Button>
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </Table>
+    {/* Ajoutez de la marge à droite entre les deux boutons */}
+    <div style={{marginLeft: "0.2em"}}>
+    <Button
+      variant="primary"
+      onClick={handleShowOffCanvas}
+      className='btn-lg'
+      style={addButtonStyle}
+    >
+      <PersonPlus className="mr-2" style={iconStyle} />
+    </Button>
+    </div>
+  </div>
 </div>
+
+
+{/* Modal pour afficher la liste des congés en attente */}
+<PendingLeavesModal
+  show={showListeModal}
+  onHide={handleCloseListeModal}
+  pendingLeaves={pendingLeaves}
+  handleApproveLeave={handleApproveLeave}
+  handleRejectLeave={handleRejectLeave}
+/>
+
 
 
       <ListUsers key={userListKey} />

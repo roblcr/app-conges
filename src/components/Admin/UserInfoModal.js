@@ -3,12 +3,10 @@ import { Badge, Button, Modal, Table } from "react-bootstrap";
 function UserInfoModal({ user, onClose, conges, typesConges }) {
 
     // Fonction pour formater une date au format français (dd/mm/yyyy)
-    const formatDate = (date) => {
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Notez que les mois sont 0-indexés
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
-    };
+    const formatDateToFrench = (dateString) => {
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return new Date(dateString).toLocaleDateString('fr-FR', options);
+      };
 
     const getStatusBadgeVariant = (status) => {
         switch (status) {
@@ -22,8 +20,6 @@ function UserInfoModal({ user, onClose, conges, typesConges }) {
             return 'secondary'; // Autre statut, badge gris par défaut
         }
       };
-
-      console.log(conges)
 
     return (
         <Modal show={true} onHide={onClose} size="lg">
@@ -46,8 +42,8 @@ function UserInfoModal({ user, onClose, conges, typesConges }) {
                     {conges.map((conge) => (
                         <tr key={conge.id}>
                         <td>{conge.leaveType}</td>
-                        <td>{formatDate(new Date(conge.startDate))}</td>
-                        <td>{formatDate(new Date(conge.endDate))}</td>
+                        <td>{formatDateToFrench(conge.startDate)}</td>
+                        <td>{formatDateToFrench(conge.endDate)}</td>
                         <td>
                             <Badge bg={getStatusBadgeVariant(conge.status)}>
                             {conge.status}

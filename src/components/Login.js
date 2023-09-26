@@ -32,8 +32,8 @@ function Login() {
   };
 
   return (
-    <Container className='w-25'>
-      <div className="mt-5">
+    <Container className='w-25 d-flex justify-content-center align-items-center vh-100'>
+      <div>
         <h2>Connexion</h2>
         <Form onSubmit={handleLogin}>
           <Form.Group className="mb-3">

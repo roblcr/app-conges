@@ -102,7 +102,8 @@ function ListUsers(props) {
 
   return (
     <>
-      <h3>Liste des utilisateurs</h3>
+      {/* <h3>Liste des utilisateurs</h3> */}
+      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
       <Table striped bordered hover>
         <thead>
           <tr>
@@ -120,7 +121,7 @@ function ListUsers(props) {
               <td>{utilisateur.lastName}</td>
               <td>{utilisateur.firstName}</td>
               <td>{utilisateur.role}</td>
-              <td>
+              <td className='d-flex justify-content-evenly'>
                 <Button variant="warning" onClick={() => handleEditUser(utilisateur)}>
                   Modifier
                 </Button>
@@ -128,13 +129,14 @@ function ListUsers(props) {
                   Supprimer
                 </Button>
                 <Button variant="info" onClick={() => handleShowUserInfo(utilisateur)}>
-                    Voir Infos
+                  Voir Infos
                 </Button>
               </td>
             </tr>
           ))}
         </tbody>
       </Table>
+    </div>
       {showEditOffCanvas && (
         <Offcanvas show={showEditOffCanvas} onHide={handleCancelEdit} placement="end">
           <Offcanvas.Header closeButton>
