@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom/dist';
 import { RotatingLines } from 'react-loader-spinner';
 import { BoxArrowRight, Calendar, Gear } from 'react-bootstrap-icons';
 import { Tooltip } from 'react-tooltip';
+import CalendarComponent from './Calendar';
 
 function CongeCalendar() {
   const [events, setEvents] = useState([]);
@@ -268,61 +269,8 @@ function CongeCalendar() {
           </div>
         </div>
 
-        <FullCalendar
-          plugins={[dayGridPlugin, interactionPlugin]}
-          initialView="dayGridMonth"
-          displayEventTime={false}
-          events={events}
-          selectable={true}
-          select={handleSelect}
-          slotDuration="24:00:00"
-          validRange={{
-            start: today,
-          }}
-          eventContent={(arg) => {
-            const { event } = arg;
-            console.log(event.extendedProps.leaveType)
+        <CalendarComponent events={events} handleSelect={handleSelect} today={today} />
 
-            // Définissez des couleurs personnalisées pour chaque type d'événement
-            let backgroundColor;
-            switch (event.extendedProps.leaveType) {
-              case 'RTT':
-                backgroundColor = 'green';
-                break;
-              case 'Vacances':
-                backgroundColor = 'red';
-                break;
-              case 'Rendez-vous':
-                backgroundColor = 'blue';
-                break;
-              case 'Maladie':
-                backgroundColor = 'purple';
-                break;
-              default:
-                backgroundColor = 'black';
-            }
-
-            if (event.extendedProps.status === 'En attente') {
-              backgroundColor = 'grey';
-            }
-
-            return (
-              <div
-                className="fc-content"
-                style={{
-                  backgroundColor,
-                  color: 'white',
-                  padding: '5px',
-                  width: '100%'
-                }}
-              >
-                <b>{event.title}</b>
-                {/* <br />
-        {event.extendedProps.leaveType} */}
-              </div>
-            );
-          }}
-        />
 
       </div>
       <LeaveRequestForm

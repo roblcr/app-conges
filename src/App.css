@@ -40,3 +40,13 @@
   grid-column: 2; /* Faites en sorte que le texte occupe la deuxième colonne */
 }
 
+.custom-calendar {
+  width: 80%;
+  height: 70%;
+  margin: auto; /* Centrez horizontalement */
+  display: flex;
+  justify-content: center; /* Centrez verticalement */
+  align-items: center; /* Centrez verticalement */
+  margin-top: 0;
+}
+
