@@ -63,29 +63,29 @@ const PanelAdmin = () => {
         const q = query(collection(db, 'conges'), where('status', '==', 'En attente'));
         const querySnapshot = await getDocs(q);
         const leaves = [];
-    
+
         for (const doc of querySnapshot.docs) {
           const leaveData = doc.data();
-          
+
           // Récupérez l'utilisateur associé à cette demande de congé
           const userQuery = query(collection(db, 'users'), where('uid', '==', leaveData.uid));
           const userQuerySnapshot = await getDocs(userQuery);
-    
+
           if (!userQuerySnapshot.empty) {
             const userData = userQuerySnapshot.docs[0].data();
             // Ajoutez le nom et le prénom de l'utilisateur à la demande de congé
             leaveData.userName = `${userData.firstName} ${userData.lastName}`;
           }
-    
+
           leaves.push(leaveData);
         }
-    
+
         setPendingLeaves(leaves);
       } catch (error) {
         console.error('Erreur lors du chargement des congés en attente :', error);
       }
     };
-    
+
 
     if (isAdmin) {
       loadPendingLeaves();
@@ -144,20 +144,20 @@ const PanelAdmin = () => {
       // Créez une requête pour trouver le document de la demande de congé correspondante
       const q = query(collection(db, 'conges'), where('id', '==', id));
       const querySnapshot = await getDocs(q);
-  
+
       // Assurez-vous qu'il y a un seul document correspondant
       if (!querySnapshot.empty) {
         const leaveDocRef = querySnapshot.docs[0].ref;
-  
+
         // Mettez à jour le statut du congé à "Validé"
         await updateDoc(leaveDocRef, { status: 'Validé' });
-  
+
         console.log('Demande de congé approuvée avec succès.');
 
         // Mettez à jour l'état local pour supprimer la demande de congé approuvée
-      setPendingLeaves((prevLeaves) =>
-      prevLeaves.filter((leave) => leave.id !== id)
-    );
+        setPendingLeaves((prevLeaves) =>
+          prevLeaves.filter((leave) => leave.id !== id)
+        );
       } else {
         console.error('Demande de congé non trouvée.');
       }
@@ -165,8 +165,8 @@ const PanelAdmin = () => {
       console.error('Erreur lors de l\'approbation de la demande de congé :', error);
     }
   };
-  
-  
+
+
 
   // Fonction pour refuser un congé
   const handleRejectLeave = async (id) => {
@@ -174,20 +174,20 @@ const PanelAdmin = () => {
       // Créez une requête pour trouver le document de la demande de congé correspondante
       const q = query(collection(db, 'conges'), where('id', '==', id));
       const querySnapshot = await getDocs(q);
-  
+
       // Assurez-vous qu'il y a un seul document correspondant
       if (!querySnapshot.empty) {
         const leaveDocRef = querySnapshot.docs[0].ref;
-  
+
         // Mettez à jour le statut du congé à "Validé"
         await updateDoc(leaveDocRef, { status: 'Refusé' });
-  
+
         console.log('Demande de congé refusée avec succès.');
 
         // Mettez à jour l'état local pour supprimer la demande de congé approuvée
-      setPendingLeaves((prevLeaves) =>
-      prevLeaves.filter((leave) => leave.id !== id)
-    );
+        setPendingLeaves((prevLeaves) =>
+          prevLeaves.filter((leave) => leave.id !== id)
+        );
       } else {
         console.error('Demande de congé non trouvée.');
       }
@@ -200,7 +200,7 @@ const PanelAdmin = () => {
     fontSize: '24px', // Ajustez la taille de l'icône selon vos préférences
     marginBottom: '1px'
   };
-  
+
   const returnButtonStyle = {
     fontSize: '18px',     // Taille de la police
     borderRadius: '50px', // Bord arrondi pour un aspect élégant
@@ -209,7 +209,7 @@ const PanelAdmin = () => {
     color: 'white',       // Couleur du texte
     transition: 'background-color 0.2s', // Transition de couleur de fond
   };
-  
+
   const addButtonStyle = {
     ...returnButtonStyle,
     background: '#007bff', // Couleur de fond du bouton d'ajout
@@ -217,68 +217,68 @@ const PanelAdmin = () => {
 
   return (
     <Container>
-<div className="d-flex justify-content-between align-items-center mt-4">
-  <div>
-    <Button
-      variant="info"
-      onClick={() => navigate('/')}
-      className='btn-lg calendar'
-      style={returnButtonStyle}
-    >
-      <Calendar style={iconStyle} />
-    </Button>
-    <Tooltip
-      anchorSelect=".calendar"
-      content="Retour au calendrier"
-    />
-  </div>
-  <h1 className="m-0">Panel Admin</h1>
-  <div className="d-flex align-items-center">
-    <Button
-        variant="primary"
-        onClick={handleShowListeModal}
-        className='btn-lg pending-leaves'
-        style={returnButtonStyle}
-      >
-      <Tooltip
-      anchorSelect=".pending-leaves"
-      content="Congés en attente"
+      <div className="d-flex justify-content-between align-items-center mt-4">
+        <div>
+          <Button
+            variant="info"
+            onClick={() => navigate('/')}
+            className='btn-lg calendar'
+            style={returnButtonStyle}
+          >
+            <Calendar style={iconStyle} />
+          </Button>
+          <Tooltip
+            anchorSelect=".calendar"
+            content="Retour au calendrier"
+          />
+        </div>
+        <h1 className="m-0">Panel Admin</h1>
+        <div className="d-flex align-items-center">
+          <Button
+            variant="primary"
+            onClick={handleShowListeModal}
+            className='btn-lg pending-leaves'
+            style={returnButtonStyle}
+          >
+            <Tooltip
+              anchorSelect=".pending-leaves"
+              content="Congés en attente"
+            />
+            <List style={iconStyle} />
+            {numPendingLeaves > 0 && (
+              <Badge bg="danger" className="ml-2" style={{ position: 'absolute', top: '20px' }}>
+                {numPendingLeaves}
+              </Badge>
+            )}
+          </Button>
+
+          {/* Ajoutez de la marge à droite entre les deux boutons */}
+          <div style={{ marginLeft: "0.2em" }}>
+            <Button
+              variant="primary"
+              onClick={handleShowOffCanvas}
+              className='btn-lg add-user'
+              style={addButtonStyle}
+            >
+              <Tooltip
+                anchorSelect=".add-user"
+                content="Ajouter un utilisateur"
+              />
+              <PersonPlus className="mr-2" style={iconStyle} />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+
+      {/* Modal pour afficher la liste des congés en attente */}
+      <PendingLeavesModal
+        show={showListeModal}
+        onHide={handleCloseListeModal}
+        pendingLeaves={pendingLeaves}
+        handleApproveLeave={handleApproveLeave}
+        handleRejectLeave={handleRejectLeave}
       />
-        <List style={iconStyle} />
-        {numPendingLeaves > 0 && (
-            <Badge bg="danger" className="ml-2" style={{position: 'absolute', top: '20px'}}>
-              {numPendingLeaves}
-            </Badge>
-          )}
-      </Button>
-
-    {/* Ajoutez de la marge à droite entre les deux boutons */}
-    <div style={{marginLeft: "0.2em"}}>
-    <Button
-      variant="primary"
-      onClick={handleShowOffCanvas}
-      className='btn-lg add-user'
-      style={addButtonStyle}
-    >
-      <Tooltip
-      anchorSelect=".add-user"
-      content="Ajouter un utilisateur"
-      />
-      <PersonPlus className="mr-2" style={iconStyle} />
-    </Button>
-    </div>
-  </div>
-</div>
-
-
-{/* Modal pour afficher la liste des congés en attente */}
-<PendingLeavesModal
-  show={showListeModal}
-  onHide={handleCloseListeModal}
-  pendingLeaves={pendingLeaves}
-  handleApproveLeave={handleApproveLeave}
-  handleRejectLeave={handleRejectLeave}
-/>
 
 
 

@@ -38,9 +38,9 @@ function Login() {
         <Form onSubmit={handleLogin}>
           <Form.Group className="mb-3">
             <InputGroup>
-                <InputGroup.Text id="email-addon">
-                  <EnvelopeAtFill />
-                </InputGroup.Text>
+              <InputGroup.Text id="email-addon">
+                <EnvelopeAtFill />
+              </InputGroup.Text>
               <FormControl
                 type="email"
                 placeholder="E-mail"
@@ -53,9 +53,9 @@ function Login() {
           </Form.Group>
           <Form.Group className="mb-3">
             <InputGroup>
-                <InputGroup.Text id="password-addon">
-                  <LockFill />
-                </InputGroup.Text>
+              <InputGroup.Text id="password-addon">
+                <LockFill />
+              </InputGroup.Text>
               <FormControl
                 type="password"
                 placeholder="Mot de passe"

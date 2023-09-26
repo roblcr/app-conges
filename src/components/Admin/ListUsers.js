@@ -41,7 +41,7 @@ function ListUsers(props) {
   const handleDeleteUser = async (id) => {
     try {
       // Supprimez l'utilisateur de l'authentification Firebase en utilisant son UID
-      await deleteUser(auth, id);
+      // await deleteUser(auth, id);
   
       // Ensuite, supprimez l'utilisateur de la collection "users" dans Firestore
       await deleteDoc(doc(db, 'users', id));
@@ -131,7 +131,7 @@ function ListUsers(props) {
                 <Button variant="warning" onClick={() => handleEditUser(utilisateur)}>
                   Modifier
                 </Button>
-                <Button variant="danger" onClick={() => handleDeleteUser(utilisateur)}>
+                <Button variant="danger" onClick={() => handleDeleteUser(utilisateur.id)}>
                   Supprimer
                 </Button>
                 <Button variant="info" onClick={() => handleShowUserInfo(utilisateur)}>

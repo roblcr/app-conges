@@ -4,11 +4,12 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { collection, query, where, getDocs, addDoc, doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
-import { Button, Container } from 'react-bootstrap';
+import { Button, Container, Tooltip } from 'react-bootstrap';
 import LeaveRequestForm from './LeaveRequestForm';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom/dist';
 import { RotatingLines } from 'react-loader-spinner';
+import { BoxArrowRight, Calendar, Gear } from 'react-bootstrap-icons';
 
 function CongeCalendar() {
   const [events, setEvents] = useState([]);
@@ -26,25 +27,25 @@ function CongeCalendar() {
   useEffect(() => {
     // Utilisez onAuthStateChanged pour écouter les changements d'état d'authentification
     const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
-        if (authUser) {
-          setUser(authUser);
-  
-          try {
-            const q = query(collection(db, 'users'), where('uid', '==', authUser.uid), where('role', '==', 'admin'));
-            const querySnapshot = await getDocs(q);
-  
-            if (!querySnapshot.empty) {
-              setIsAdmin(true);
-            } else {
-              setIsAdmin(false);
-            }
-          } catch (error) {
-            console.error('Erreur lors de la récupération des données de l\'utilisateur :', error);
+      if (authUser) {
+        setUser(authUser);
+
+        try {
+          const q = query(collection(db, 'users'), where('uid', '==', authUser.uid), where('role', '==', 'admin'));
+          const querySnapshot = await getDocs(q);
+
+          if (!querySnapshot.empty) {
+            setIsAdmin(true);
+          } else {
+            setIsAdmin(false);
           }
-        } else {
-          setUser(null);
-          setIsAdmin(false);
+        } catch (error) {
+          console.error('Erreur lors de la récupération des données de l\'utilisateur :', error);
         }
+      } else {
+        setUser(null);
+        setIsAdmin(false);
+      }
     })
 
     // Assurez-vous de vous désabonner lorsque le composant est démonté
@@ -59,45 +60,45 @@ function CongeCalendar() {
       const q = query(collection(db, 'conges'), where('status', '!=', 'Refusé'));
       const querySnapshot = await getDocs(q);
       const eventsData = [];
-  
+
       // Parcourez les documents de demande de congé
       for (const doc of querySnapshot.docs) {
         const eventData = doc.data();
         const startDate = new Date(eventData.startDate);
         const endDate = new Date(eventData.endDate);
-  
+
         // Récupérez l'UID de l'utilisateur à partir de la demande de congé
         const userUid = eventData.uid;
-  
+
         // Créez une requête pour récupérer les informations de l'utilisateur correspondant à cet UID
         const userQuery = query(collection(db, 'users'), where('uid', '==', userUid));
         const userQuerySnapshot = await getDocs(userQuery);
-  
+
         if (userQuerySnapshot.docs.length > 0) {
           // Si un utilisateur correspondant est trouvé, utilisez ses informations pour définir le titre de l'événement
           const userData = userQuerySnapshot.docs[0].data();
           const eventTitle = `${userData.firstName} ${userData.lastName}`;
-  
+
           eventsData.push({
             title: eventTitle,
             start: startDate,
             end: endDate,
             extendedProps: {
-                leaveType: eventData.leaveType,
-                status: eventData.status
-              },
+              leaveType: eventData.leaveType,
+              status: eventData.status
+            },
           });
         } else {
           console.error('Utilisateur non trouvé dans la collection "users".');
         }
       }
-  
+
       setEvents(eventsData);
     } catch (error) {
       console.error('Erreur lors de la récupération des données de congé :', error);
     }
   };
-  
+
 
   useEffect(() => {
     // Appelez fetchData pour charger les données initiales lorsque le composant est monté
@@ -115,7 +116,7 @@ function CongeCalendar() {
   if (!user) {
     navigate('/login')
   }
-  
+
   if (isLoading) {
     return (
       <div
@@ -136,8 +137,8 @@ function CongeCalendar() {
       </div>
     );
   }
-  
-  
+
+
 
   const handleSelect = (arg) => {
     setShowLeaveRequestForm(true);
@@ -152,13 +153,13 @@ function CongeCalendar() {
 
     // Obtenez le type de congé à partir du formulaire de demande
     const leaveType = leaveRequest.leaveType; // Assurez-vous que c'est la propriété correcte du formulaire
-  
+
     leaveRequest.uid = uid;
     leaveRequest.leaveType = leaveType;
     leaveRequest.status = 'En attente';
 
     console.log(leaveType)
-  
+
     addDoc(collection(db, 'conges'), leaveRequest)
       .then(() => {
         const userRef = query(collection(db, 'users'), where('uid', '==', uid));
@@ -177,7 +178,7 @@ function CongeCalendar() {
           .catch((error) => {
             console.error('Erreur lors de la récupération des données de l\'utilisateur :', error);
           });
-  
+
         fetchData();
         setShowLeaveRequestForm(false);
         setStartDate('');
@@ -187,8 +188,8 @@ function CongeCalendar() {
         console.error('Erreur lors de l\'ajout de la demande de congé :', error);
       });
   };
-  
-  
+
+
 
   const handleSignOut = async () => {
     try {
@@ -202,99 +203,118 @@ function CongeCalendar() {
     }
   };
 
+  const iconStyle = {
+    fontSize: '24px',
+    marginBottom: '1px',
+  };
+
+  const buttonStyle = {
+    fontSize: '18px',
+    borderRadius: '50px',
+    padding: '10px 20px',
+    background: 'green',
+    color: 'white',
+    transition: 'background-color 0.2s',
+  };
+
   return (
     <Container>
       <div>
-        <h1>Calendrier de congé</h1>
-        <Button variant="primary" onClick={handleSignOut}>
-          Se déconnecter
-        </Button>
-        {isAdmin && (
-          <Button variant="info" onClick={() => navigate('/admin')}>
-            Accéder à l'administration
-          </Button>
-        )}
+        <div className="d-flex justify-content-between align-items-center mt-4">
+          <div>
+          </div>
+          <div>
+            <Button variant="primary" onClick={() => navigate('/admin')} style={buttonStyle}>
+              <Gear style={iconStyle} className="mr-2" />
+              Accéder à l'administration
+            </Button>
+            <Button variant="primary" onClick={handleSignOut} style={buttonStyle}>
+              <BoxArrowRight style={iconStyle} className="mr-2" />
+              Se déconnecter
+            </Button>
+          </div>
+        </div>
         <div className='d-flex mt-2 justify-content-center'>
-            <div className="legend">
-                <h2>Légende</h2>
-                <div className="legend-item">
-                    <div className="legend-color" style={{ backgroundColor: 'green' }}></div>
-                    <div className="legend-text">RTT</div>
-                </div>
-                <div className="legend-item">
-                    <div className="legend-color" style={{ backgroundColor: 'red' }}></div>
-                    <div className="legend-text">Vacances</div>
-                </div>
-                <div className="legend-item">
-                    <div className="legend-color" style={{ backgroundColor: 'blue' }}></div>
-                    <div className="legend-text">Rendez-Vous</div>
-                </div>
-                <div className="legend-item">
-                    <div className="legend-color" style={{ backgroundColor: 'purple' }}></div>
-                    <div className="legend-text">Maladie</div>
-                </div>
-                <div className="legend-item">
-                    <div className="legend-color" style={{ backgroundColor: 'grey' }}></div>
-                    <div className="legend-text">En attente</div>
-                </div>
+          <div className="legend">
+            <h2>Légende</h2>
+            <div className="legend-item">
+              <div className="legend-color" style={{ backgroundColor: 'green' }}></div>
+              <div className="legend-text">RTT</div>
             </div>
+            <div className="legend-item">
+              <div className="legend-color" style={{ backgroundColor: 'red' }}></div>
+              <div className="legend-text">Vacances</div>
+            </div>
+            <div className="legend-item">
+              <div className="legend-color" style={{ backgroundColor: 'blue' }}></div>
+              <div className="legend-text">Rendez-Vous</div>
+            </div>
+            <div className="legend-item">
+              <div className="legend-color" style={{ backgroundColor: 'purple' }}></div>
+              <div className="legend-text">Maladie</div>
+            </div>
+            <div className="legend-item">
+              <div className="legend-color" style={{ backgroundColor: 'grey' }}></div>
+              <div className="legend-text">En attente</div>
+            </div>
+          </div>
         </div>
 
         <FullCalendar
-  plugins={[dayGridPlugin, interactionPlugin]}
-  initialView="dayGridMonth"
-  displayEventTime={false}
-  events={events}
-  selectable={true}
-  select={handleSelect}
-  slotDuration="24:00:00"
-  validRange={{
-    start: today,
-  }}
-  eventContent={(arg) => {
-    const { event } = arg;
-    console.log(event.extendedProps.leaveType)
+          plugins={[dayGridPlugin, interactionPlugin]}
+          initialView="dayGridMonth"
+          displayEventTime={false}
+          events={events}
+          selectable={true}
+          select={handleSelect}
+          slotDuration="24:00:00"
+          validRange={{
+            start: today,
+          }}
+          eventContent={(arg) => {
+            const { event } = arg;
+            console.log(event.extendedProps.leaveType)
 
-    // Définissez des couleurs personnalisées pour chaque type d'événement
-    let backgroundColor;
-    switch (event.extendedProps.leaveType) {
-      case 'RTT':
-        backgroundColor = 'green';
-        break;
-      case 'Vacances':
-        backgroundColor = 'red';
-        break;
-      case 'Rendez-vous':
-        backgroundColor = 'blue';
-        break;
-      case 'Maladie':
-        backgroundColor = 'purple';
-        break;
-      default:
-        backgroundColor = 'black';
-    }
+            // Définissez des couleurs personnalisées pour chaque type d'événement
+            let backgroundColor;
+            switch (event.extendedProps.leaveType) {
+              case 'RTT':
+                backgroundColor = 'green';
+                break;
+              case 'Vacances':
+                backgroundColor = 'red';
+                break;
+              case 'Rendez-vous':
+                backgroundColor = 'blue';
+                break;
+              case 'Maladie':
+                backgroundColor = 'purple';
+                break;
+              default:
+                backgroundColor = 'black';
+            }
 
-    if (event.extendedProps.status === 'En attente') {
-        backgroundColor = 'grey';
-      }
+            if (event.extendedProps.status === 'En attente') {
+              backgroundColor = 'grey';
+            }
 
-    return (
-      <div
-        className="fc-content"
-        style={{
-          backgroundColor,
-          color: 'white',
-          padding: '5px',
-          width: '100%'
-        }}
-      >
-        <b>{event.title}</b>
-        {/* <br />
+            return (
+              <div
+                className="fc-content"
+                style={{
+                  backgroundColor,
+                  color: 'white',
+                  padding: '5px',
+                  width: '100%'
+                }}
+              >
+                <b>{event.title}</b>
+                {/* <br />
         {event.extendedProps.leaveType} */}
-      </div>
-    );
-  }}
-/>
+              </div>
+            );
+          }}
+        />
 
       </div>
       <LeaveRequestForm

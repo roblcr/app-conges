@@ -18,10 +18,10 @@ const LeaveRequestForm = ({ show, onHide, onSubmit, initialStartDate, initialEnd
   useEffect(() => {
     // Convertissez initialEndDate en une date JavaScript
     const endDate = new Date(initialEndDate);
-  
+
     // Soustrayez un jour
     endDate.setDate(endDate.getDate() - 1);
-  
+
     // Mettez à jour initialEndDate avec la nouvelle valeur
     setEndDate(endDate.toISOString().split('T')[0]);
   }, [initialEndDate]);

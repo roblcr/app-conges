@@ -21,7 +21,7 @@ function FormUsers(props) {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-  
+
     try {
       if (props.user) {
         // Mettez à jour l'utilisateur existant
@@ -35,7 +35,7 @@ function FormUsers(props) {
         // Créez un nouvel utilisateur avec email et mot de passe en utilisant createUserWithEmailAndPassword
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-  
+
         // Ajoutez l'utilisateur à la base de données Firestore avec l'UID comme identifiant
         await addDoc(collection(db, 'users'), {
           uid: user.uid,
@@ -45,14 +45,14 @@ function FormUsers(props) {
           lastName: lastName,
         });
       }
-  
+
       // Réinitialisez les champs du formulaire
       setEmail('');
       setPassword('');
       setFirstname('');
       setLastname('');
       setRole('user');
-  
+
       props.refreshList();
       props.closeModal();
     } catch (error) {
