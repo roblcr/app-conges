@@ -4,12 +4,13 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { collection, query, where, getDocs, addDoc, doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
-import { Button, Container, Tooltip } from 'react-bootstrap';
+import { Button, Container } from 'react-bootstrap';
 import LeaveRequestForm from './LeaveRequestForm';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom/dist';
 import { RotatingLines } from 'react-loader-spinner';
 import { BoxArrowRight, Calendar, Gear } from 'react-bootstrap-icons';
+import { Tooltip } from 'react-tooltip';
 
 function CongeCalendar() {
   const [events, setEvents] = useState([]);
@@ -212,7 +213,7 @@ function CongeCalendar() {
     fontSize: '18px',
     borderRadius: '50px',
     padding: '10px 20px',
-    background: 'green',
+    // background: 'green',
     color: 'white',
     transition: 'background-color 0.2s',
   };
@@ -222,15 +223,22 @@ function CongeCalendar() {
       <div>
         <div className="d-flex justify-content-between align-items-center mt-4">
           <div>
+            <Button variant="warning" className='admin' onClick={() => navigate('/admin')} style={buttonStyle}>
+              <Gear style={iconStyle} className="mr-2" />
+              <Tooltip
+                anchorSelect='.admin'
+                content="Accéder a l'administration"
+              ></Tooltip>
+
+            </Button>
           </div>
           <div>
-            <Button variant="primary" onClick={() => navigate('/admin')} style={buttonStyle}>
-              <Gear style={iconStyle} className="mr-2" />
-              Accéder à l'administration
-            </Button>
-            <Button variant="primary" onClick={handleSignOut} style={buttonStyle}>
+            <Button variant="primary" className='logout' onClick={handleSignOut} style={buttonStyle}>
               <BoxArrowRight style={iconStyle} className="mr-2" />
-              Se déconnecter
+              <Tooltip
+                anchorSelect='.logout'
+                content='Déconnexion'
+              ></Tooltip>
             </Button>
           </div>
         </div>
