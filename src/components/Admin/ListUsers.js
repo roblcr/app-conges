@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Button, Offcanvas } from 'react-bootstrap';
 import { collection, getDocs, deleteDoc, doc, updateDoc, query, where } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { auth, db } from '../../firebase';
 import EditUserForm from './EditUserForm'; // Importez votre composant de formulaire de modification
 import UserInfoModal from './UserInfoModal';
+import { deleteUser } from 'firebase/auth';
 
 function ListUsers(props) {
   const [utilisateurs, setUtilisateurs] = useState([]);
@@ -39,7 +40,12 @@ function ListUsers(props) {
 
   const handleDeleteUser = async (id) => {
     try {
+      // Supprimez l'utilisateur de l'authentification Firebase en utilisant son UID
+      await deleteUser(auth, id);
+  
+      // Ensuite, supprimez l'utilisateur de la collection "users" dans Firestore
       await deleteDoc(doc(db, 'users', id));
+  
       // Mettez à jour la liste des utilisateurs après la suppression
       setUtilisateurs((prevState) => prevState.filter((user) => user.id !== id));
     } catch (error) {
@@ -125,7 +131,7 @@ function ListUsers(props) {
                 <Button variant="warning" onClick={() => handleEditUser(utilisateur)}>
                   Modifier
                 </Button>
-                <Button variant="danger" onClick={() => handleDeleteUser(utilisateur.id)}>
+                <Button variant="danger" onClick={() => handleDeleteUser(utilisateur)}>
                   Supprimer
                 </Button>
                 <Button variant="info" onClick={() => handleShowUserInfo(utilisateur)}>

@@ -11,6 +11,8 @@ import { useNavigate } from 'react-router-dom/dist';
 import { RotatingLines } from 'react-loader-spinner';
 import { Calendar, List, PersonPlus } from 'react-bootstrap-icons';
 import PendingLeavesModal from './PendingLeavesModal';
+import { Tooltip } from 'react-tooltip';
+
 
 const PanelAdmin = () => {
   const [showListeModal, setShowListeModal] = useState(false);
@@ -220,20 +222,28 @@ const PanelAdmin = () => {
     <Button
       variant="info"
       onClick={() => navigate('/')}
-      className='btn-lg'
+      className='btn-lg calendar'
       style={returnButtonStyle}
     >
       <Calendar style={iconStyle} />
     </Button>
+    <Tooltip
+      anchorSelect=".calendar"
+      content="Retour au calendrier"
+    />
   </div>
   <h1 className="m-0">Panel Admin</h1>
   <div className="d-flex align-items-center">
     <Button
         variant="primary"
         onClick={handleShowListeModal}
-        className='btn-lg'
+        className='btn-lg pending-leaves'
         style={returnButtonStyle}
       >
+      <Tooltip
+      anchorSelect=".pending-leaves"
+      content="Congés en attente"
+      />
         <List style={iconStyle} />
         {numPendingLeaves > 0 && (
             <Badge bg="danger" className="ml-2" style={{position: 'absolute', top: '20px'}}>
@@ -247,9 +257,13 @@ const PanelAdmin = () => {
     <Button
       variant="primary"
       onClick={handleShowOffCanvas}
-      className='btn-lg'
+      className='btn-lg add-user'
       style={addButtonStyle}
     >
+      <Tooltip
+      anchorSelect=".add-user"
+      content="Ajouter un utilisateur"
+      />
       <PersonPlus className="mr-2" style={iconStyle} />
     </Button>
     </div>
